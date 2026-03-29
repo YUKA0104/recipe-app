@@ -333,7 +333,7 @@ async function generate() {
     document.getElementById('result').style.display='block';
     document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
   } catch(err) {
-    alert('エラーが発生しました。\n'+（err?.message||JSON.stringify(err)));
+    alert('エラーが発生しました。\n'+(err?.message||JSON.stringify(err)));
   } finally {
     document.getElementById('loadingWrap').style.display='none';
     document.getElementById('submitBtn').disabled=false;
