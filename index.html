@@ -791,13 +791,27 @@ function addCustomStyle() {
 function handleFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    const dataUrl = ev.target.result;
-    const mimeMatch = dataUrl.match(/data:([^;]+);/);
-    imageMimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-    if (imageMimeType.includes('heic') || imageMimeType.includes('heif')) imageMimeType = 'image/jpeg';
+
+  const objectUrl = URL.createObjectURL(file);
+  const tmpImg = new Image();
+  tmpImg.onload = function() {
+    // Canvasを使ってJPEGに変換（HEIC・PNG・WebP全対応）
+    const canvas = document.createElement('canvas');
+    const MAX = 1600;
+    let w = tmpImg.naturalWidth, h = tmpImg.naturalHeight;
+    if (w > MAX || h > MAX) {
+      if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+      else { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(tmpImg, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    imageMimeType = 'image/jpeg';
     imageBase64 = dataUrl.split(',')[1];
+    URL.revokeObjectURL(objectUrl);
+
     const img = document.getElementById('previewImg');
     img.src = dataUrl;
     img.style.display = 'block';
@@ -805,7 +819,11 @@ function handleFileSelect(e) {
     document.querySelectorAll('.upload-zone .icon, .upload-label, .upload-btn-row').forEach(el => el.style.display = 'none');
     document.getElementById('uploadZone').classList.add('has-image');
   };
-  reader.readAsDataURL(file);
+  tmpImg.onerror = function() {
+    alert('画像の読み込みに失敗しました。別の写真をお試しください。');
+    URL.revokeObjectURL(objectUrl);
+  };
+  tmpImg.src = objectUrl;
 }
 document.getElementById('fileCamera').addEventListener('change', handleFileSelect);
 document.getElementById('fileGallery').addEventListener('change', handleFileSelect);
