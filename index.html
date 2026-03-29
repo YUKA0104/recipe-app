@@ -553,6 +553,27 @@
     transition: all 0.18s;
   }
   .allergy-add-btn:active { background: var(--border); }
+
+  .upload-btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .upload-btn {
+    background: var(--orange-light);
+    color: var(--orange);
+    border: 2px solid var(--orange);
+    border-radius: 50px;
+    padding: 9px 18px;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .upload-btn:active { background: var(--orange); color: #fff; }
 </style>
 </head>
 <body>
@@ -566,14 +587,18 @@
 
   <!-- UPLOAD -->
   <p class="section-label">① 食材の写真を撮る・選ぶ</p>
-  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+  <div class="upload-zone" id="uploadZone">
     <span class="icon">📷</span>
-    <p class="upload-label">タップして写真を選ぶ</p>
-    <p class="upload-sub">カメラで撮影 or カメラロールから選択</p>
+    <p class="upload-label">写真を選んでください</p>
+    <div class="upload-btn-row">
+      <button class="upload-btn" onclick="document.getElementById('fileCamera').click()">📷 カメラで撮影</button>
+      <button class="upload-btn" onclick="document.getElementById('fileGallery').click()">🖼️ カメラロールから</button>
+    </div>
     <img id="previewImg" style="display:none">
-    <button class="change-btn" id="changeBtn" style="display:none" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">📷 変更</button>
+    <button class="change-btn" id="changeBtn" style="display:none" onclick="event.stopPropagation(); showUploadButtons()">📷 変更</button>
   </div>
-  <input type="file" id="fileInput" accept="image/*" capture="environment">
+  <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none">
+  <input type="file" id="fileGallery" accept="image/*" style="display:none">
 
   <!-- STYLE -->
   <p class="section-label">② どんな料理にしたい？</p>
@@ -763,7 +788,7 @@ function addCustomStyle() {
 }
 
 // 画像選択
-document.getElementById('fileInput').addEventListener('change', function(e) {
+function handleFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -771,18 +796,29 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
     const dataUrl = ev.target.result;
     const mimeMatch = dataUrl.match(/data:([^;]+);/);
     imageMimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-    // HEIC/HEIFはjpegとして扱う（API非対応のため）
     if (imageMimeType.includes('heic') || imageMimeType.includes('heif')) imageMimeType = 'image/jpeg';
     imageBase64 = dataUrl.split(',')[1];
     const img = document.getElementById('previewImg');
-    img.src = ev.target.result;
+    img.src = dataUrl;
     img.style.display = 'block';
     document.getElementById('changeBtn').style.display = 'block';
-    document.querySelectorAll('.upload-zone .icon, .upload-label, .upload-sub').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.upload-zone .icon, .upload-label, .upload-btn-row').forEach(el => el.style.display = 'none');
     document.getElementById('uploadZone').classList.add('has-image');
   };
   reader.readAsDataURL(file);
-});
+}
+document.getElementById('fileCamera').addEventListener('change', handleFileSelect);
+document.getElementById('fileGallery').addEventListener('change', handleFileSelect);
+
+function showUploadButtons() {
+  imageBase64 = null;
+  document.getElementById('fileCamera').value = '';
+  document.getElementById('fileGallery').value = '';
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('changeBtn').style.display = 'none';
+  document.querySelectorAll('.upload-zone .icon, .upload-label, .upload-btn-row').forEach(el => el.style.display = '');
+  document.getElementById('uploadZone').classList.remove('has-image');
+}
 
 // レシピ生成
 async function generate() {
@@ -898,7 +934,8 @@ function resetAll() {
   imageBase64 = null;
   imageMimeType = 'image/jpeg';
   selectedStyleId = null;
-  document.getElementById('fileInput').value = '';
+  document.getElementById('fileCamera').value = '';
+  document.getElementById('fileGallery').value = '';
   document.getElementById('previewImg').style.display = 'none';
   document.getElementById('previewImg').src = '';
   document.getElementById('changeBtn').style.display = 'none';
@@ -1028,4 +1065,3 @@ renderAllergies();
 
 </body>
 </html>
-
