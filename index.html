@@ -6,86 +6,74 @@
 <title>食材レシピAI</title>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #FDFAF4;
-    --surface: #FFFFFF;
-    --orange: #F4845F;
-    --orange-light: #FDEEE8;
-    --green: #5A9E72;
-    --green-light: #EAF5ED;
-    --text: #2D2016;
-    --text-muted: #8A7060;
-    --border: #EDE4D8;
-    --shadow: 0 4px 24px rgba(100,60,20,0.10);
-    --radius: 20px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); font-family: 'Noto Sans JP', sans-serif; color: var(--text); min-height: 100vh; padding-bottom: 40px; }
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 20px 14px; text-align: center; position: sticky; top: 0; z-index: 10; }
-  header h1 { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 1.35rem; color: var(--text); letter-spacing: 0.03em; }
-  header h1 span { color: var(--orange); }
-  header p { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
-  .container { max-width: 480px; margin: 0 auto; padding: 20px 16px; }
-  .upload-zone { background: var(--surface); border: 2.5px dashed var(--border); border-radius: var(--radius); padding: 32px 20px; text-align: center; transition: all 0.25s ease; position: relative; overflow: hidden; }
-  .upload-zone.has-image { border-style: solid; border-color: var(--orange); padding: 0; }
-  .upload-zone .icon { font-size: 3rem; margin-bottom: 10px; display: block; }
-  .upload-zone .upload-label { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 1rem; color: var(--text); }
-  #previewImg { width: 100%; border-radius: calc(var(--radius) - 2px); display: block; max-height: 280px; object-fit: cover; }
-  .change-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50px; padding: 6px 14px; font-size: 0.75rem; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; }
-  .upload-btn-row { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
-  .upload-btn { background: var(--orange-light); color: var(--orange); border: 2px solid var(--orange); border-radius: 50px; padding: 9px 18px; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.18s; }
-  .upload-btn:active { background: var(--orange); color: #fff; }
-  .section-label { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--text); margin: 22px 0 10px; }
-  .style-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .style-card { background: var(--surface); border: 2.5px solid var(--border); border-radius: 16px; padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; user-select: none; position: relative; }
-  .style-card.active { border-color: var(--orange); background: var(--orange-light); }
-  .style-card .card-icon { font-size: 2.2rem; display: block; }
-  .style-card .card-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.95rem; margin-top: 8px; color: var(--text); }
-  .style-card .card-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
-  .delete-card-btn { position: absolute; top: 6px; right: 8px; background: none; border: none; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; line-height: 1; padding: 2px 4px; border-radius: 50%; }
-  .add-card { background: var(--surface); border: 2.5px dashed var(--border); border-radius: 16px; padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; user-select: none; }
-  .add-card .add-icon { font-size: 2rem; display: block; color: var(--text-muted); }
-  .add-card .add-label { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-end; justify-content: center; }
-  .modal-overlay.show { display: flex; }
-  .modal-box { background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px 20px 40px; width: 100%; max-width: 480px; animation: slideUp 0.25s ease; }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal-box h3 { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 1rem; margin-bottom: 16px; color: var(--text); }
-  .modal-row { display: flex; gap: 8px; margin-bottom: 10px; }
-  .modal-input { flex: 1; border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 12px; font-family: 'Noto Sans JP', sans-serif; font-size: 0.9rem; color: var(--text); background: var(--bg); outline: none; }
-  .modal-input:focus { border-color: var(--orange); }
-  .modal-add-btn { padding: 10px 18px; background: var(--orange); color: #fff; border: none; border-radius: 12px; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; white-space: nowrap; }
-  .modal-cancel { width: 100%; margin-top: 8px; padding: 12px; background: none; border: none; color: var(--text-muted); font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
-  .modal-hint { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 14px; }
-  .emoji-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .emoji-btn { font-size: 1.4rem; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 4px 8px; cursor: pointer; transition: all 0.15s; }
-  .emoji-btn.selected { border-color: var(--orange); background: var(--orange-light); }
-  .tag-wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .tag-item { display: inline-flex; align-items: center; gap: 4px; background: var(--surface); border: 2px solid var(--border); border-radius: 50px; padding: 7px 14px; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--text); cursor: pointer; transition: all 0.18s ease; user-select: none; }
-  .tag-item.active-orange { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
-  .tag-item.active-red { border-color: #E05252; background: #FDF0F0; color: #E05252; }
-  .tag-item .del-tag { font-size: 0.7rem; color: var(--text-muted); margin-left: 2px; line-height: 1; }
-  .tag-add-btn { display: inline-flex; align-items: center; background: none; border: 2px dashed var(--border); border-radius: 50px; padding: 7px 14px; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; }
-  .extras { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-top: 10px; }
-  .extras textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 12px; font-family: 'Noto Sans JP', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--bg); resize: none; height: 70px; outline: none; }
-  .extras textarea:focus { border-color: var(--orange); }
-  #submitBtn { width: 100%; margin-top: 22px; padding: 18px; background: linear-gradient(135deg, var(--orange) 0%, #E8633C 100%); color: #fff; border: none; border-radius: 50px; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 1.1rem; letter-spacing: 0.05em; cursor: pointer; box-shadow: 0 6px 20px rgba(244,132,95,0.4); transition: all 0.2s ease; }
-  #submitBtn:active { transform: scale(0.97); box-shadow: none; }
-  #submitBtn:disabled { background: #D4C5B8; box-shadow: none; cursor: not-allowed; }
-  .loading-wrap { text-align: center; padding: 40px 20px; display: none; }
-  .spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-wrap p { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; color: var(--text-muted); font-size: 0.9rem; }
-  #result { display: none; margin-top: 24px; }
-  .result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-  .result-header h2 { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 1.1rem; color: var(--text); }
-  .result-badge { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 50px; background: var(--orange-light); color: var(--orange); }
-  .ingredient-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .chip { background: var(--orange-light); color: var(--orange); border-radius: 50px; padding: 4px 12px; font-size: 0.78rem; font-weight: 700; font-family: 'Zen Maru Gothic', sans-serif; }
-  .result-content { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); font-size: 0.88rem; line-height: 1.75; color: var(--text); }
-  .result-content h3 { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 1rem; color: var(--orange); margin: 16px 0 6px; }
-  .result-content h3:first-child { margin-top: 0; }
-  .retry-btn { width: 100%; margin-top: 16px; padding: 14px; background: var(--surface); color: var(--text-muted); border: 2px solid var(--border); border-radius: 50px; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+  :root { --bg:#FDFAF4; --surface:#FFFFFF; --orange:#F4845F; --orange-light:#FDEEE8; --text:#2D2016; --text-muted:#8A7060; --border:#EDE4D8; --shadow:0 4px 24px rgba(100,60,20,0.10); --radius:20px; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);font-family:'Noto Sans JP',sans-serif;color:var(--text);min-height:100vh;padding-bottom:40px}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:18px 20px 14px;text-align:center;position:sticky;top:0;z-index:10}
+  header h1{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:1.35rem;color:var(--text);letter-spacing:0.03em}
+  header h1 span{color:var(--orange)}
+  header p{font-size:0.72rem;color:var(--text-muted);margin-top:3px}
+  .container{max-width:480px;margin:0 auto;padding:20px 16px}
+  .upload-zone{background:var(--surface);border:2.5px dashed var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;transition:all 0.25s ease;position:relative;overflow:hidden}
+  .upload-zone.has-image{border-style:solid;border-color:var(--orange);padding:0}
+  .upload-zone .icon{font-size:3rem;margin-bottom:10px;display:block}
+  .upload-zone .upload-label{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:1rem;color:var(--text)}
+  #previewImg{width:100%;border-radius:calc(var(--radius) - 2px);display:block;max-height:280px;object-fit:cover}
+  .change-btn{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:0.75rem;cursor:pointer}
+  .upload-btn-row{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+  .upload-btn{background:var(--orange-light);color:var(--orange);border:2px solid var(--orange);border-radius:50px;padding:9px 18px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.18s}
+  .upload-btn:active{background:var(--orange);color:#fff}
+  .section-label{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);margin:22px 0 10px}
+  .style-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .style-card{background:var(--surface);border:2.5px solid var(--border);border-radius:16px;padding:18px 12px;text-align:center;cursor:pointer;transition:all 0.2s ease;user-select:none;position:relative}
+  .style-card.active{border-color:var(--orange);background:var(--orange-light)}
+  .style-card .card-icon{font-size:2.2rem;display:block}
+  .style-card .card-title{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.95rem;margin-top:8px;color:var(--text)}
+  .style-card .card-desc{font-size:0.7rem;color:var(--text-muted);margin-top:4px}
+  .delete-card-btn{position:absolute;top:6px;right:8px;background:none;border:none;font-size:0.85rem;color:var(--text-muted);cursor:pointer}
+  .add-card{background:var(--surface);border:2.5px dashed var(--border);border-radius:16px;padding:18px 12px;text-align:center;cursor:pointer;user-select:none}
+  .add-card .add-icon{font-size:2rem;display:block;color:var(--text-muted)}
+  .add-card .add-label{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.85rem;color:var(--text-muted);margin-top:8px}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:flex-end;justify-content:center}
+  .modal-overlay.show{display:flex}
+  .modal-box{background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;animation:slideUp 0.25s ease}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-box h3{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:1rem;margin-bottom:16px;color:var(--text)}
+  .modal-row{display:flex;gap:8px;margin-bottom:10px}
+  .modal-input{flex:1;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;font-family:'Noto Sans JP',sans-serif;font-size:0.9rem;color:var(--text);background:var(--bg);outline:none}
+  .modal-input:focus{border-color:var(--orange)}
+  .modal-add-btn{padding:10px 18px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;white-space:nowrap}
+  .modal-cancel{width:100%;margin-top:8px;padding:12px;background:none;border:none;color:var(--text-muted);font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer}
+  .modal-hint{font-size:0.72rem;color:var(--text-muted);margin-bottom:14px}
+  .emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .emoji-btn{font-size:1.4rem;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:4px 8px;cursor:pointer}
+  .emoji-btn.selected{border-color:var(--orange);background:var(--orange-light)}
+  .tag-wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .tag-item{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:2px solid var(--border);border-radius:50px;padding:7px 14px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.85rem;color:var(--text);cursor:pointer;transition:all 0.18s ease;user-select:none}
+  .tag-item.active-orange{border-color:var(--orange);background:var(--orange-light);color:var(--orange)}
+  .tag-item.active-red{border-color:#E05252;background:#FDF0F0;color:#E05252}
+  .tag-item .del-tag{font-size:0.7rem;color:var(--text-muted);margin-left:2px}
+  .tag-add-btn{display:inline-flex;align-items:center;background:none;border:2px dashed var(--border);border-radius:50px;padding:7px 14px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.85rem;color:var(--text-muted);cursor:pointer}
+  .extras{background:var(--surface);border-radius:var(--radius);padding:16px;margin-top:10px}
+  .extras textarea{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;font-family:'Noto Sans JP',sans-serif;font-size:0.85rem;color:var(--text);background:var(--bg);resize:none;height:70px;outline:none}
+  .extras textarea:focus{border-color:var(--orange)}
+  #submitBtn{width:100%;margin-top:22px;padding:18px;background:linear-gradient(135deg,var(--orange) 0%,#E8633C 100%);color:#fff;border:none;border-radius:50px;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:1.1rem;letter-spacing:0.05em;cursor:pointer;box-shadow:0 6px 20px rgba(244,132,95,0.4);transition:all 0.2s ease}
+  #submitBtn:active{transform:scale(0.97)}
+  #submitBtn:disabled{background:#D4C5B8;box-shadow:none;cursor:not-allowed}
+  .loading-wrap{text-align:center;padding:40px 20px;display:none}
+  .spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-wrap p{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;color:var(--text-muted);font-size:0.9rem}
+  #result{display:none;margin-top:24px}
+  .result-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .result-header h2{font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:1.1rem;color:var(--text)}
+  .result-badge{font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:50px;background:var(--orange-light);color:var(--orange)}
+  .ingredient-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .chip{background:var(--orange-light);color:var(--orange);border-radius:50px;padding:4px 12px;font-size:0.78rem;font-weight:700;font-family:'Zen Maru Gothic',sans-serif}
+  .result-content{background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);font-size:0.88rem;line-height:1.75;color:var(--text)}
+  .result-content h3{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:1rem;color:var(--orange);margin:16px 0 6px}
+  .result-content h3:first-child{margin-top:0}
+  .retry-btn{width:100%;margin-top:16px;padding:14px;background:var(--surface);color:var(--text-muted);border:2px solid var(--border);border-radius:50px;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer}
 </style>
 </head>
 <body>
@@ -103,11 +91,10 @@
       <button class="upload-btn" onclick="document.getElementById('fileGallery').click()">🖼️ カメラロールから</button>
     </div>
     <img id="previewImg" style="display:none">
-    <button class="change-btn" id="changeBtn" style="display:none" onclick="event.stopPropagation(); showUploadButtons()">📷 変更</button>
+    <button class="change-btn" id="changeBtn" style="display:none" onclick="event.stopPropagation();showUploadButtons()">📷 変更</button>
   </div>
   <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="fileGallery" accept="image/*" style="display:none">
-
   <p class="section-label">② どんな料理にしたい？</p>
   <div class="style-cards" id="styleCards"></div>
   <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -119,12 +106,11 @@
         <input class="modal-input" id="customName" placeholder="例：時短系" maxlength="10">
         <button class="modal-add-btn" onclick="addCustomStyle()">追加</button>
       </div>
-      <input class="modal-input" id="customDesc" placeholder="例：10分で完成・忙しい日向け" maxlength="20" style="width:100%; margin-bottom:4px;">
+      <input class="modal-input" id="customDesc" placeholder="例：10分で完成・忙しい日向け" maxlength="20" style="width:100%;margin-bottom:4px">
       <button class="modal-cancel" onclick="document.getElementById('modalOverlay').classList.remove('show')">キャンセル</button>
     </div>
   </div>
-
-  <p class="section-label" style="margin-top:22px;">③ 料理ジャンル（任意）</p>
+  <p class="section-label" style="margin-top:22px">③ 料理ジャンル（任意）</p>
   <div class="tag-wrap" id="genreWrap"></div>
   <div class="modal-overlay" id="genreModalOverlay" onclick="closeGenreModal(event)">
     <div class="modal-box">
@@ -137,8 +123,7 @@
       <button class="modal-cancel" onclick="document.getElementById('genreModalOverlay').classList.remove('show')">キャンセル</button>
     </div>
   </div>
-
-  <p class="section-label" style="margin-top:22px;">④ アレルギー食材（任意）</p>
+  <p class="section-label" style="margin-top:22px">④ アレルギー食材（任意）</p>
   <div class="tag-wrap" id="allergyWrap"></div>
   <div class="modal-overlay" id="allergyModalOverlay" onclick="closeAllergyModal(event)">
     <div class="modal-box">
@@ -146,17 +131,15 @@
       <p class="modal-hint">避けたい食材名を入力してください</p>
       <div class="modal-row">
         <input class="modal-input" id="customAllergyName" placeholder="例：ナッツ、鶏肉…" maxlength="10">
-        <button class="modal-add-btn" style="background:#E05252;" onclick="addCustomAllergy()">追加</button>
+        <button class="modal-add-btn" style="background:#E05252" onclick="addCustomAllergy()">追加</button>
       </div>
       <button class="modal-cancel" onclick="document.getElementById('allergyModalOverlay').classList.remove('show')">キャンセル</button>
     </div>
   </div>
-
-  <p class="section-label" style="margin-top:22px;">⑤ 一言メモ（任意）</p>
+  <p class="section-label" style="margin-top:22px">⑤ 一言メモ（任意）</p>
   <div class="extras">
     <textarea id="extraNote" placeholder="例：子どもも食べられるもの、時短で作りたい…"></textarea>
   </div>
-
   <button id="submitBtn" onclick="generate()">✨ レシピを考えてもらう</button>
   <div class="loading-wrap" id="loadingWrap">
     <div class="spinner"></div>
@@ -172,139 +155,36 @@
     <button class="retry-btn" onclick="resetAll()">🔄 もう一度試す</button>
   </div>
 </div>
-
 <script>
-let selectedStyleId = null;
-let imageBase64 = null;
-let imageMimeType = 'image/jpeg';
-let selectedGenreId = null;
-let selectedAllergies = new Set();
-
-const DEFAULT_STYLES = [
-  { id: 'guts',    icon: '🍖', title: 'ガッツリ系',  desc: 'ボリューム満点・食べ応えあり',   deletable: false },
-  { id: 'healthy', icon: '🥗', title: 'ヘルシー系',  desc: '低カロリー・栄養バランス重視',   deletable: false },
-  { id: 'bento',   icon: '🍱', title: 'お弁当系',    desc: '冷めても美味しい・作り置きOK',   deletable: false },
-];
-const DEFAULT_GENRES = ['なんでもOK','麺','丼','炒め物','スープ','サラダ','焼き物'];
-const DEFAULT_ALLERGIES = ['卵','乳製品','小麦','えび','かに','そば','落花生','ナッツ類','魚介類'];
-const EMOJIS = ['⏱️','💸','🌶️','🥂','🍜','🥩','🍣','🍛','🥘','🧆','🍝','🥞','🍲','🫕','🧇'];
-let selectedEmoji = EMOJIS[0];
-
-function ls(k) { try { const s=localStorage.getItem(k); return s?JSON.parse(s):[]; } catch { return []; } }
-function lss(k,v) { localStorage.setItem(k, JSON.stringify(v)); }
-
-function renderCards() {
-  const all = [...DEFAULT_STYLES, ...ls('customStyles')];
-  const c = document.getElementById('styleCards');
-  c.innerHTML = '';
-  all.forEach(s => {
-    const d = document.createElement('div');
-    d.className = 'style-card' + (selectedStyleId===s.id?' active':'');
-    d.onclick = () => { selectedStyleId=s.id; renderCards(); };
-    d.innerHTML = `<span class="card-icon">${s.icon}</span><p class="card-title">${s.title}</p><p class="card-desc">${s.desc}</p>${s.deletable?`<button class="delete-card-btn" onclick="event.stopPropagation();deleteStyle('${s.id}')">✕</button>`:''}`;
-    c.appendChild(d);
-  });
-  const a = document.createElement('div');
-  a.className = 'add-card';
-  a.onclick = openModal;
-  a.innerHTML = '<span class="add-icon">＋</span><p class="add-label">追加する</p>';
-  c.appendChild(a);
-}
-
-function deleteStyle(id) { const c=ls('customStyles').filter(s=>s.id!==id); lss('customStyles',c); if(selectedStyleId===id)selectedStyleId=null; renderCards(); }
-
-function openModal() { selectedEmoji=EMOJIS[0]; document.getElementById('customName').value=''; document.getElementById('customDesc').value=''; renderEmojiPicker(); document.getElementById('modalOverlay').classList.add('show'); }
-function renderEmojiPicker() {
-  const p = document.getElementById('emojiPicker');
-  p.innerHTML = '';
-  EMOJIS.forEach(e => { const b=document.createElement('button'); b.className='emoji-btn'+(e===selectedEmoji?' selected':''); b.textContent=e; b.onclick=()=>{selectedEmoji=e;renderEmojiPicker();}; p.appendChild(b); });
-}
-function closeModal(e) { if(e.target===document.getElementById('modalOverlay'))document.getElementById('modalOverlay').classList.remove('show'); }
-function addCustomStyle() {
-  const name=document.getElementById('customName').value.trim();
-  if(!name){document.getElementById('customName').focus();return;}
-  const c=ls('customStyles');
-  c.push({id:'custom_'+Date.now(),icon:selectedEmoji,title:name,desc:document.getElementById('customDesc').value.trim(),deletable:true});
-  lss('customStyles',c);
-  document.getElementById('modalOverlay').classList.remove('show');
-  renderCards();
-}
-
-function renderGenres() {
-  const all = DEFAULT_GENRES.map(t=>({id:t,label:t,deletable:false})).concat(ls('customGenres').map(t=>({id:t,label:t,deletable:true})));
-  const w = document.getElementById('genreWrap');
-  w.innerHTML = '';
-  all.forEach(g => {
-    const t=document.createElement('span');
-    t.className='tag-item'+(selectedGenreId===g.id?' active-orange':'');
-    t.onclick=()=>{selectedGenreId=selectedGenreId===g.id?null:g.id;renderGenres();};
-    t.innerHTML=g.label+(g.deletable?`<span class="del-tag" onclick="event.stopPropagation();deleteGenre('${g.id}')">✕</span>`:'');
-    w.appendChild(t);
-  });
-  const b=document.createElement('button'); b.className='tag-add-btn'; b.textContent='＋ 追加';
-  b.onclick=()=>{document.getElementById('customGenreName').value='';document.getElementById('genreModalOverlay').classList.add('show');};
-  w.appendChild(b);
-}
-function deleteGenre(id){const g=ls('customGenres').filter(x=>x!==id);lss('customGenres',g);if(selectedGenreId===id)selectedGenreId=null;renderGenres();}
-function addCustomGenre(){const n=document.getElementById('customGenreName').value.trim();if(!n)return;const g=ls('customGenres');if(!g.includes(n)){g.push(n);lss('customGenres',g);}document.getElementById('genreModalOverlay').classList.remove('show');renderGenres();}
-function closeGenreModal(e){if(e.target===document.getElementById('genreModalOverlay'))document.getElementById('genreModalOverlay').classList.remove('show');}
-
-function renderAllergies() {
-  const all = DEFAULT_ALLERGIES.map(t=>({id:t,label:t,deletable:false})).concat(ls('customAllergies').map(t=>({id:t,label:t,deletable:true})));
-  const w = document.getElementById('allergyWrap');
-  w.innerHTML = '';
-  all.forEach(a => {
-    const t=document.createElement('span');
-    t.className='tag-item'+(selectedAllergies.has(a.id)?' active-red':'');
-    t.onclick=()=>{if(selectedAllergies.has(a.id))selectedAllergies.delete(a.id);else selectedAllergies.add(a.id);renderAllergies();};
-    t.innerHTML=a.label+(a.deletable?`<span class="del-tag" onclick="event.stopPropagation();deleteAllergy('${a.id}')">✕</span>`:'');
-    w.appendChild(t);
-  });
-  const b=document.createElement('button'); b.className='tag-add-btn'; b.textContent='＋ 追加';
-  b.onclick=()=>{document.getElementById('customAllergyName').value='';document.getElementById('allergyModalOverlay').classList.add('show');};
-  w.appendChild(b);
-}
-function deleteAllergy(id){const a=ls('customAllergies').filter(x=>x!==id);lss('customAllergies',a);selectedAllergies.delete(id);renderAllergies();}
-function addCustomAllergy(){const n=document.getElementById('customAllergyName').value.trim();if(!n)return;const a=ls('customAllergies');if(!a.includes(n)){a.push(n);lss('customAllergies',a);}document.getElementById('allergyModalOverlay').classList.remove('show');renderAllergies();}
-function closeAllergyModal(e){if(e.target===document.getElementById('allergyModalOverlay'))document.getElementById('allergyModalOverlay').classList.remove('show');}
-
-function handleFileSelect(e) {
-  const file=e.target.files[0]; if(!file)return;
-  const url=URL.createObjectURL(file);
-  const tmp=new Image();
-  tmp.onload=function(){
-    const canvas=document.createElement('canvas');
-    const MAX=1600; let w=tmp.naturalWidth,h=tmp.naturalHeight;
-    if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
-    canvas.width=w; canvas.height=h;
-    canvas.getContext('2d').drawImage(tmp,0,0,w,h);
-    const dataUrl=canvas.toDataURL('image/jpeg',0.85);
-    imageMimeType='image/jpeg'; imageBase64=dataUrl.split(',')[1];
-    URL.revokeObjectURL(url);
-    const img=document.getElementById('previewImg');
-    img.src=dataUrl; img.style.display='block';
-    document.getElementById('changeBtn').style.display='block';
-    document.querySelectorAll('.upload-zone .icon,.upload-label,.upload-btn-row').forEach(el=>el.style.display='none');
-    document.getElementById('uploadZone').classList.add('has-image');
-  };
-  tmp.onerror=()=>{alert('画像の読み込みに失敗しました。');URL.revokeObjectURL(url);};
-  tmp.src=url;
-}
+let selectedStyleId=null,imageBase64=null,imageMimeType='image/jpeg',selectedGenreId=null,selectedAllergies=new Set();
+const DEFAULT_STYLES=[{id:'guts',icon:'🍖',title:'ガッツリ系',desc:'ボリューム満点・食べ応えあり',deletable:false},{id:'healthy',icon:'🥗',title:'ヘルシー系',desc:'低カロリー・栄養バランス重視',deletable:false},{id:'bento',icon:'🍱',title:'お弁当系',desc:'冷めても美味しい・作り置きOK',deletable:false}];
+const DEFAULT_GENRES=['なんでもOK','麺','丼','炒め物','スープ','サラダ','焼き物'];
+const DEFAULT_ALLERGIES=['卵','乳製品','小麦','えび','かに','そば','落花生','ナッツ類','魚介類'];
+const EMOJIS=['⏱️','💸','🌶️','🥂','🍜','🥩','🍣','🍛','🥘','🧆','🍝','🥞','🍲','🫕','🧇'];
+let selectedEmoji=EMOJIS[0];
+function ls(k){try{const s=localStorage.getItem(k);return s?JSON.parse(s):[]}catch{return[]}}
+function lss(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function renderCards(){const all=[...DEFAULT_STYLES,...ls('customStyles')];const c=document.getElementById('styleCards');c.innerHTML='';all.forEach(s=>{const d=document.createElement('div');d.className='style-card'+(selectedStyleId===s.id?' active':'');d.onclick=()=>{selectedStyleId=s.id;renderCards()};d.innerHTML=`<span class="card-icon">${s.icon}</span><p class="card-title">${s.title}</p><p class="card-desc">${s.desc}</p>${s.deletable?`<button class="delete-card-btn" onclick="event.stopPropagation();deleteStyle('${s.id}')">✕</button>`:''}`;c.appendChild(d)});const a=document.createElement('div');a.className='add-card';a.onclick=openModal;a.innerHTML='<span class="add-icon">＋</span><p class="add-label">追加する</p>';c.appendChild(a)}
+function deleteStyle(id){const c=ls('customStyles').filter(s=>s.id!==id);lss('customStyles',c);if(selectedStyleId===id)selectedStyleId=null;renderCards()}
+function openModal(){selectedEmoji=EMOJIS[0];document.getElementById('customName').value='';document.getElementById('customDesc').value='';renderEmojiPicker();document.getElementById('modalOverlay').classList.add('show')}
+function renderEmojiPicker(){const p=document.getElementById('emojiPicker');p.innerHTML='';EMOJIS.forEach(e=>{const b=document.createElement('button');b.className='emoji-btn'+(e===selectedEmoji?' selected':'');b.textContent=e;b.onclick=()=>{selectedEmoji=e;renderEmojiPicker()};p.appendChild(b)})}
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))document.getElementById('modalOverlay').classList.remove('show')}
+function addCustomStyle(){const name=document.getElementById('customName').value.trim();if(!name){document.getElementById('customName').focus();return}const c=ls('customStyles');c.push({id:'custom_'+Date.now(),icon:selectedEmoji,title:name,desc:document.getElementById('customDesc').value.trim(),deletable:true});lss('customStyles',c);document.getElementById('modalOverlay').classList.remove('show');renderCards()}
+function renderGenres(){const all=DEFAULT_GENRES.map(t=>({id:t,label:t,deletable:false})).concat(ls('customGenres').map(t=>({id:t,label:t,deletable:true})));const w=document.getElementById('genreWrap');w.innerHTML='';all.forEach(g=>{const t=document.createElement('span');t.className='tag-item'+(selectedGenreId===g.id?' active-orange':'');t.onclick=()=>{selectedGenreId=selectedGenreId===g.id?null:g.id;renderGenres()};t.innerHTML=g.label+(g.deletable?`<span class="del-tag" onclick="event.stopPropagation();deleteGenre('${g.id}')">✕</span>`:'');w.appendChild(t)});const b=document.createElement('button');b.className='tag-add-btn';b.textContent='＋ 追加';b.onclick=()=>{document.getElementById('customGenreName').value='';document.getElementById('genreModalOverlay').classList.add('show')};w.appendChild(b)}
+function deleteGenre(id){const g=ls('customGenres').filter(x=>x!==id);lss('customGenres',g);if(selectedGenreId===id)selectedGenreId=null;renderGenres()}
+function addCustomGenre(){const n=document.getElementById('customGenreName').value.trim();if(!n)return;const g=ls('customGenres');if(!g.includes(n)){g.push(n);lss('customGenres',g)}document.getElementById('genreModalOverlay').classList.remove('show');renderGenres()}
+function closeGenreModal(e){if(e.target===document.getElementById('genreModalOverlay'))document.getElementById('genreModalOverlay').classList.remove('show')}
+function renderAllergies(){const all=DEFAULT_ALLERGIES.map(t=>({id:t,label:t,deletable:false})).concat(ls('customAllergies').map(t=>({id:t,label:t,deletable:true})));const w=document.getElementById('allergyWrap');w.innerHTML='';all.forEach(a=>{const t=document.createElement('span');t.className='tag-item'+(selectedAllergies.has(a.id)?' active-red':'');t.onclick=()=>{if(selectedAllergies.has(a.id))selectedAllergies.delete(a.id);else selectedAllergies.add(a.id);renderAllergies()};t.innerHTML=a.label+(a.deletable?`<span class="del-tag" onclick="event.stopPropagation();deleteAllergy('${a.id}')">✕</span>`:'');w.appendChild(t)});const b=document.createElement('button');b.className='tag-add-btn';b.textContent='＋ 追加';b.onclick=()=>{document.getElementById('customAllergyName').value='';document.getElementById('allergyModalOverlay').classList.add('show')};w.appendChild(b)}
+function deleteAllergy(id){const a=ls('customAllergies').filter(x=>x!==id);lss('customAllergies',a);selectedAllergies.delete(id);renderAllergies()}
+function addCustomAllergy(){const n=document.getElementById('customAllergyName').value.trim();if(!n)return;const a=ls('customAllergies');if(!a.includes(n)){a.push(n);lss('customAllergies',a)}document.getElementById('allergyModalOverlay').classList.remove('show');renderAllergies()}
+function closeAllergyModal(e){if(e.target===document.getElementById('allergyModalOverlay'))document.getElementById('allergyModalOverlay').classList.remove('show')}
+function handleFileSelect(e){const file=e.target.files[0];if(!file)return;const url=URL.createObjectURL(file);const tmp=new Image();tmp.onload=function(){const canvas=document.createElement('canvas');const MAX=1600;let w=tmp.naturalWidth,h=tmp.naturalHeight;if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX}else{w=Math.round(w*MAX/h);h=MAX}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(tmp,0,0,w,h);const dataUrl=canvas.toDataURL('image/jpeg',0.85);imageMimeType='image/jpeg';imageBase64=dataUrl.split(',')[1];URL.revokeObjectURL(url);const img=document.getElementById('previewImg');img.src=dataUrl;img.style.display='block';document.getElementById('changeBtn').style.display='block';document.querySelectorAll('.upload-zone .icon,.upload-label,.upload-btn-row').forEach(el=>el.style.display='none');document.getElementById('uploadZone').classList.add('has-image')};tmp.onerror=()=>{alert('画像の読み込みに失敗しました。');URL.revokeObjectURL(url)};tmp.src=url}
 document.getElementById('fileCamera').addEventListener('change',handleFileSelect);
 document.getElementById('fileGallery').addEventListener('change',handleFileSelect);
-
-function showUploadButtons(){
-  imageBase64=null;
-  document.getElementById('fileCamera').value=''; document.getElementById('fileGallery').value='';
-  document.getElementById('previewImg').style.display='none';
-  document.getElementById('changeBtn').style.display='none';
-  document.querySelectorAll('.upload-zone .icon,.upload-label,.upload-btn-row').forEach(el=>el.style.display='');
-  document.getElementById('uploadZone').classList.remove('has-image');
-}
-
-async function generate() {
-  if(!imageBase64){alert('写真を選んでください📷');return;}
-  if(!selectedStyleId){alert('料理スタイルを選んでください！');return;}
+function showUploadButtons(){imageBase64=null;document.getElementById('fileCamera').value='';document.getElementById('fileGallery').value='';document.getElementById('previewImg').style.display='none';document.getElementById('changeBtn').style.display='none';document.querySelectorAll('.upload-zone .icon,.upload-label,.upload-btn-row').forEach(el=>el.style.display='');document.getElementById('uploadZone').classList.remove('has-image')}
+async function generate(){
+  if(!imageBase64){alert('写真を選んでください📷');return}
+  if(!selectedStyleId){alert('料理スタイルを選んでください！');return}
   const all=[...DEFAULT_STYLES,...ls('customStyles')];
   const style=all.find(s=>s.id===selectedStyleId);
   const styleText=`${style.title}（${style.desc}）`;
@@ -313,63 +193,28 @@ async function generate() {
   document.getElementById('submitBtn').disabled=true;
   document.getElementById('loadingWrap').style.display='block';
   document.getElementById('result').style.display='none';
-
   const prompt=`この写真に写っている食材をすべて認識して、それらを使った料理レシピを提案してください。\n\nスタイル：${styleText}\n${genreText?`料理ジャンル：${genreText}`:''}\n${selectedAllergies.size>0?`【絶対に使わないでください】アレルギー食材：${[...selectedAllergies].join('、')}`:''}\n${extraNote?`追加メモ：${extraNote}`:''}\n\n以下の形式で回答してください：\n\n【認識した食材】\n（食材名をカンマ区切りで列挙）\n\n【レシピ名】\n（料理名）\n\n【所要時間・難易度】\n（例：約20分・★☆☆）\n\n【材料（2人分）】\n（箇条書き）\n\n【作り方】\n（番号付きで手順を記載。簡潔に）\n\n【ポイント】\n（1〜2行でコツや工夫）\n\n日本語で、わかりやすく実用的に答えてください。`;
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: imageMimeType, data: imageBase64 } },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
-    });
-    const data = await response.json();
-    if(!response.ok || data.error) throw new Error(data.error?.message || `APIエラー(${response.status})`);
-    const text = data.content?.[0]?.text || 'レシピを取得できませんでした。';
-
-    const ingredientMatch = text.match(/【認識した食材】\s*\n([^\n【]+)/);
-    const chips = document.getElementById('ingredientChips');
-    chips.innerHTML = '';
-    if(ingredientMatch){
-      ingredientMatch[1].split(/[、,，\s]+/).filter(Boolean).forEach(item=>{
-        const c=document.createElement('span'); c.className='chip'; c.textContent=item.trim(); chips.appendChild(c);
-      });
-    }
-    document.getElementById('resultContent').innerHTML = text.replace(/【(.+?)】/g,'<h3>【$1】</h3>').replace(/\n/g,'<br>');
-    document.getElementById('resultBadge').textContent = `${style.icon} ${style.title}`;
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:imageMimeType,data:imageBase64}},{type:'text',text:prompt}]}]})});
+    const data=await response.json();
+    if(!response.ok||data.error)throw new Error(data.error?.message||`APIエラー(${response.status})`);
+    const text=data.content?.[0]?.text||'レシピを取得できませんでした。';
+    const ingredientMatch=text.match(/【認識した食材】\s*\n([^\n【]+)/);
+    const chips=document.getElementById('ingredientChips');chips.innerHTML='';
+    if(ingredientMatch){ingredientMatch[1].split(/[、,，\s]+/).filter(Boolean).forEach(item=>{const c=document.createElement('span');c.className='chip';c.textContent=item.trim();chips.appendChild(c)})}
+    document.getElementById('resultContent').innerHTML=text.replace(/【(.+?)】/g,'<h3>【$1】</h3>').replace(/\n/g,'<br>');
+    document.getElementById('resultBadge').textContent=`${style.icon} ${style.title}`;
     document.getElementById('result').style.display='block';
     document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
-  } catch(err) {
+  }catch(err){
     alert('エラーが発生しました。\n'+(err?.message||JSON.stringify(err)));
-  } finally {
+  }finally{
     document.getElementById('loadingWrap').style.display='none';
     document.getElementById('submitBtn').disabled=false;
   }
 }
-
-function resetAll(){
-  imageBase64=null; imageMimeType='image/jpeg'; selectedStyleId=null; selectedGenreId=null; selectedAllergies.clear();
-  document.getElementById('fileCamera').value=''; document.getElementById('fileGallery').value='';
-  document.getElementById('previewImg').style.display='none'; document.getElementById('previewImg').src='';
-  document.getElementById('changeBtn').style.display='none';
-  document.querySelectorAll('.upload-zone .icon,.upload-label,.upload-btn-row').forEach(el=>el.style.display='');
-  document.getElementById('uploadZone').classList.remove('has-image');
-  document.getElementById('extraNote').value='';
-  document.getElementById('result').style.display='none';
-  renderCards(); renderGenres(); renderAllergies();
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-renderCards(); renderGenres(); renderAllergies();
+function resetAll(){imageBase64=null;imageMimeType='image/jpeg';selectedStyleId=null;selectedGenreId=null;selectedAllergies.clear();document.getElementById('fileCamera').value='';document.getElementById('fileGallery').value='';document.getElementById('previewImg').style.display='none';document.getElementById('previewImg').src='';document.getElementById('changeBtn').style.display='none';document.querySelectorAll('.upload-zone .icon,.upload-label,.upload-btn-row').forEach(el=>el.style.display='');document.getElementById('uploadZone').classList.remove('has-image');document.getElementById('extraNote').value='';document.getElementById('result').style.display='none';renderCards();renderGenres();renderAllergies();window.scrollTo({top:0,behavior:'smooth'})}
+renderCards();renderGenres();renderAllergies();
 </script>
 </body>
 </html>
